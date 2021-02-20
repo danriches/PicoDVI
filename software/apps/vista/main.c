@@ -23,7 +23,6 @@
 // DVDD 1.2V (1.1V seems ok too)
 #define FRAME_WIDTH 320
 #define FRAME_HEIGHT 240
-#define BIT_CLOCK_MHZ 252
 #define VREG_VSEL VREG_VOLTAGE_1_15
 #define DVI_TIMING dvi_timing_640x480p_60hz
 
@@ -37,17 +36,6 @@
 #define FRAMES_PER_IMAGE 300
 
 struct dvi_inst dvi0;
-
-void __scratch_x("dvi") dvi0_irq() {
-	dma_hw->ints0 = 1u << dvi0.dma_cfg[TMDS_SYNC_LANE].chan_ctrl;
-
-	static int count = 0;
-	if (++count == 4) {
-		count = 0;
-		dvi_dma_irq_handler(&dvi0);
-	}
-}
-
 struct semaphore dvi_start_sem;
 
 // Just dumped out register values from running the code in tmds_encode.c:
@@ -147,15 +135,9 @@ uint8_t img_buf[2][2 * IMAGE_SCANLINE_SIZE];
 int __not_in_flash("main") main() {
 	vreg_set_voltage(VREG_VSEL);
 	sleep_ms(10);
-	// Run system at TMDS bit clock
-	set_sys_clock_khz(BIT_CLOCK_MHZ * 1000, true);
+	set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
 
 	setup_default_uart();
-
-	for (int i = DEBUG_PIN0; i < DEBUG_PIN0 + DEBUG_N_PINS; ++i) {
-		gpio_init(i);
-		gpio_set_dir(i, GPIO_OUT);
-	}
 
 	gpio_init(LED_PIN);
 	gpio_set_dir(LED_PIN, GPIO_OUT);

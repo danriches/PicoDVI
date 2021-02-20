@@ -18,7 +18,6 @@
 // DVDD 1.2V (1.1V seems ok too)
 #define FRAME_WIDTH 320
 #define FRAME_HEIGHT 240
-#define BIT_CLOCK_MHZ 252
 #define VREG_VSEL VREG_VOLTAGE_1_20
 #define DVI_TIMING dvi_timing_640x480p_60hz
 
@@ -53,16 +52,10 @@ int main() {
 	set_sys_clock_khz(12000, true);
 #else
 	// Run system at TMDS bit clock
-	set_sys_clock_khz(BIT_CLOCK_MHZ * 1000, true);
+	set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
 #endif
 
-
 	setup_default_uart();
-
-	for (int i = DEBUG_PIN0; i < DEBUG_PIN0 + DEBUG_N_PINS; ++i) {
-		gpio_init(i);
-		gpio_set_dir(i, GPIO_OUT);
-	}
 
 	gpio_init(LED_PIN);
 	gpio_set_dir(LED_PIN, GPIO_OUT);
